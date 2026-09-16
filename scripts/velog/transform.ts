@@ -23,7 +23,7 @@ export function truncate(s: string, n: number): string {
 
 const q = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
-export function buildFrontmatter(f: { title: string; description: string; date: string; category: Category; tags: string[]; cover?: string; velogUrl: string }): string {
+export function buildFrontmatter(f: { title: string; description: string; date: string; category: Category; tags: string[]; cover?: string; velogUrl?: string }): string {
   const lines = [
     `title: ${q(f.title)}`,
     `description: ${q(f.description)}`,
@@ -31,7 +31,7 @@ export function buildFrontmatter(f: { title: string; description: string; date: 
     `category: ${f.category}`,
     `tags: [${f.tags.map(q).join(', ')}]`,
     ...(f.cover ? [`cover: ${f.cover}`] : []),
-    `velogUrl: ${f.velogUrl}`,
+    ...(f.velogUrl ? [`velogUrl: ${f.velogUrl}`] : []),
   ];
   return `---\n${lines.join('\n')}\n---\n`;
 }
