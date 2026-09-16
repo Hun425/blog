@@ -1,0 +1,24 @@
+---
+// src/pages/category/[category].astro
+import Base from '../../layouts/Base.astro';
+import CategoryTabs from '../../components/CategoryTabs.astro';
+import PostCard from '../../components/PostCard.astro';
+import { CATEGORIES, CATEGORY_META } from '../../lib/categories';
+import { getPostsByCategory, countByCategory } from '../../lib/posts';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((category) => ({ params: { category } }));
+}
+const { category } = Astro.params;
+const posts = await getPostsByCategory(category);
+const counts = await countByCategory();
+---
+<Base title={CATEGORY_META[category].label} description={`${CATEGORY_META[category].label} 카테고리 글 ${posts.length}건`}>
+  <main class="wrap">
+    <CategoryTabs active={category} {counts} />
+    <div class="grid">
+      {posts.map((post, i) => <PostCard {post} featured={i === 0} />)}
+      {posts.length === 0 && <p class="empty">아직 글이 없습니다.</p>}
+    </div>
+  </main>
+</Base>

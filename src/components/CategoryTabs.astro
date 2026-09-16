@@ -1,0 +1,25 @@
+---
+// src/components/CategoryTabs.astro
+import { CATEGORIES, CATEGORY_META, type Category } from '../lib/categories';
+import { url } from '../lib/url';
+interface Props { active: Category | 'all'; counts: Record<Category, number>; }
+const { active, counts } = Astro.props;
+const total = Object.values(counts).reduce((a, b) => a + b, 0);
+---
+<nav class="tabs" aria-label="카테고리">
+  <a class:list={['tab', { active: active === 'all' }]} href={url()} aria-current={active === 'all' ? 'page' : undefined}>전체 <span class="n">{total}</span></a>
+  {CATEGORIES.map((c) => (
+    <a class:list={['tab', { active: active === c }]} href={url(`category/${c}/`)} aria-current={active === c ? 'page' : undefined}>
+      <span class="sw" style={`background:var(${CATEGORY_META[c].cssVar})`}></span>{CATEGORY_META[c].label} <span class="n">{counts[c]}</span>
+    </a>
+  ))}
+</nav>
+<style>
+  .tabs { display:flex; gap:6px; overflow-x:auto; padding-block:18px 6px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:none; display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink-2); font-size:13.5px; font-weight:500; }
+  .n { font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums; }
+  .tab.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .tab.active .n { color:inherit; opacity:.7; }
+  .sw { width:8px; height:8px; border-radius:50%; }
+</style>

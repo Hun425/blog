@@ -49,3 +49,8 @@ img { max-width:100%; height:auto; }
   color:var(--shiki-dark) !important; background-color:var(--shiki-dark-bg) !important;
 }
 @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+
+/* 카드 그리드 (홈/카테고리 공용) */
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; padding-block:14px 48px; }
+@media (max-width:900px) { .grid { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:560px) { .grid { grid-template-columns:1fr; gap:16px; } }

@@ -1,0 +1,42 @@
+---
+// src/components/PostCard.astro
+import { Image } from 'astro:assets';
+import type { Post } from '../lib/posts';
+import { CATEGORY_META } from '../lib/categories';
+import { readingTime } from '../lib/text';
+import { url } from '../lib/url';
+interface Props { post: Post; featured?: boolean; }
+const { post, featured = false } = Astro.props;
+const { title, description, date, category, cover, series } = post.data;
+const fmt = date.toISOString().slice(0, 10).replaceAll('-', '.');
+---
+<a class:list={['card', { featured }]} href={url(`posts/${post.id}/`)}>
+  {cover
+    ? <div class="cover"><Image src={cover} alt="" widths={[480, 960]} sizes={featured ? '(max-width: 900px) 100vw, 740px' : '(max-width: 560px) 100vw, 360px'} loading={featured ? 'eager' : 'lazy'} /></div>
+    : <div class:list={['cover', 'fallback', category]}><span class="glyph mono">{CATEGORY_META[category].label}</span></div>}
+  <div class="body">
+    <span class:list={['chip', category]}>{CATEGORY_META[category].label}</span>
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <div class="meta">
+      <span class="mono">{fmt}</span><span>·</span><span>{readingTime(post.body ?? '')}분</span>
+      {series && <span class="series">시리즈</span>}
+    </div>
+  </div>
+</a>
+<style>
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:transform .15s ease, box-shadow .15s ease; }
+  .card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+  .card.featured { grid-column:span 2; grid-row:span 2; }
+  .card.featured .cover { aspect-ratio:16/8.4; }
+  .glyph { font-size:13px; letter-spacing:.12em; text-transform:uppercase; opacity:.55; }
+  .body { padding:16px 18px 18px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  h3 { font-size:17px; font-weight:600; line-height:1.35; letter-spacing:-.01em; }
+  .featured h3 { font-size:24px; }
+  p { margin:0; color:var(--ink-2); font-size:13.5px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .featured p { -webkit-line-clamp:3; font-size:14.5px; }
+  .meta { margin-top:auto; padding-top:6px; display:flex; gap:10px; align-items:center; color:var(--ink-3); font-size:12px; font-variant-numeric:tabular-nums; }
+  .series { color:var(--accent); font-weight:500; }
+  @media (max-width:900px) { .card.featured { grid-column:span 2; grid-row:auto; } }
+  @media (max-width:560px) { .card.featured { grid-column:span 1; } }
+</style>
