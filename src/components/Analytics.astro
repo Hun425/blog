@@ -38,7 +38,12 @@ const id = SITE.ga4Id;
     btn.className = 'copy-btn'; btn.type = 'button'; btn.textContent = '복사';
     btn.addEventListener('click', async () => {
       const code = pre.querySelector<HTMLElement>('code');
-      await navigator.clipboard.writeText((code ?? pre).innerText);
+      try {
+        await navigator.clipboard.writeText((code ?? pre).innerText);
+      } catch {
+        btn.textContent = '복사 실패'; setTimeout(() => (btn.textContent = '복사'), 1500);
+        return;
+      }
       btn.textContent = '복사됨'; setTimeout(() => (btn.textContent = '복사'), 1500);
       track({ name: 'code_copy', lang: pre.dataset.language ?? 'text' });
     });

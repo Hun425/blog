@@ -15,4 +15,4 @@ description: 옵시디언 초안(1_Projects/블로그/초안/*.md)을 블로그 
 7. 옵시디언 원본을 `1_Projects/블로그/발행/` 로 옮기고, 파일 머리에 `> 발행: <URL> (<날짜>)` 한 줄을 추가한다.
 8. velog 크로스포스팅을 원하면 변환된 `index.md` 본문(frontmatter 제외)을 그대로 붙여넣을 수 있다고 안내한다. velog 업로드는 사용자가 직접 한다.
 
-주의: 첨부 이미지는 초안과 같은 폴더 → 볼트 `img/` → `attachments/` 순으로 찾는다. 못 찾으면 중단하고 파일 위치를 묻는다.
+주의: 첨부 이미지는 초안과 같은 폴더 → 볼트 `img/` → `attachments/` 순으로 찾는다. 못 찾으면 중단하고 파일 위치를 묻는다. 볼트 경로가 기본값(`/Users/hun/Desktop/project/obsidain`)과 다르면 `OBSIDIAN_VAULT` 환경변수로 지정할 수 있다.

@@ -17,6 +17,7 @@ test('카테고리 탭: algorithm 탭은 algorithm 칩만 보여준다', async (
   await expect(page).toHaveURL(/category\/algorithm\/$/);
   const chips = page.locator('a.card .chip');
   const texts = await chips.allTextContents();
+  expect(texts.length).toBeGreaterThan(0);
   expect(texts.every((t) => t.trim() === 'Algorithm')).toBe(true);
 });
 

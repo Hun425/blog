@@ -19,7 +19,7 @@ if (!src || !values.slug || !values.category || !values.description)
 if (!isCategory(values.category)) throw new Error(`unknown category: ${values.category}`);
 if (values.description.length > 160) throw new Error('description must be ≤ 160 chars');
 
-const VAULT = '/Users/hun/Desktop/project/obsidain';
+const VAULT = process.env.OBSIDIAN_VAULT ?? '/Users/hun/Desktop/project/obsidain';
 const { body, attachments, title } = convertObsidian(readFileSync(src, 'utf-8'));
 if (!title) throw new Error('초안 첫 줄에 "# 제목" 이 필요합니다');
 

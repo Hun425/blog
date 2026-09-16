@@ -215,6 +215,7 @@ jobs:
   deploy: actions/deploy-pages@v4
 ```
 
+- `actions/configure-pages@v5` (enablement: true) 로 첫 배포 시 Pages 를 자동 활성화한다.
 - GitHub 저장소 `Hun425/blog` **public** (Pages 무료 조건). Settings → Pages → Source: GitHub Actions.
 - GA4: 측정 ID 하나. `Analytics.astro` 가 `<head>` 에 gtag 삽입. 커스텀 이벤트:
 
@@ -240,7 +241,7 @@ type Event =
 | 빌드 | `npm run build` | 102건 렌더, order 중복, 깨진 내부 링크 |
 | 단위 | `npm test` (vitest) | `readingTime`, `prevNext`, 슬러그 정규화, 시리즈→카테고리 매핑 |
 | E2E | `npm run test:e2e` (Playwright) | 홈 카드 렌더, 탭 필터, TOC 앵커 이동, 다크 토글 |
-| CI | PR: check+build+test / main: deploy | |
+| CI | PR: check+test+build+e2e / main: deploy | |
 
 ## 10. 에러 처리
 
