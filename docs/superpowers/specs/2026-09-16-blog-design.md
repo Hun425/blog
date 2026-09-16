@@ -178,22 +178,21 @@ const SERIES_TO_CATEGORY: Record<string, Category | null> = {
   회사:      null,         // 29 → 아래 개별 매핑
 };
 
-// '회사' 시리즈 29건 개별 매핑 (velog url_slug 기준). 제안안 — 사용자 확인 대기
+// '회사' 시리즈 29건 개별 매핑 (velog url_slug 기준). 사용자 확인 완료 (2026-09-16)
 const OVERRIDES: Record<string, Category> = {
-  // infra (4)
+  // infra (2)
   'Terraform-도입기': 'infra',
   'Discord가-수조-개의-메세지를-인덱싱하는-방법': 'infra',
-  '1억-4천만행-데이터-처리-시스템-구축하기-1편': 'infra',
-  '1억-4천만행-데이터-처리-시스템-구축하기-2편': 'infra',
-  // career (4)
+  // career (5)
   'AI-페어프로그래밍의-한계': 'career',
   '두-번째-회사를-마무리하며': 'career',
   '두-번째-회사-입사-후기': 'career',
   '첫-SI-회사-회고록': 'career',
+  '왜-스타트업은-Node.js를-많이-쓸까': 'career',
   // cs (2)
   'OOP-vs-함수형-프로그래밍': 'cs',
   '데이터베이스-정규화와-비정규화에-대한-고찰': 'cs',
-  // 나머지 19건 → backend (기본값)
+  // 나머지 20건 → backend (기본값). '1억 4천만행 데이터 처리 시스템 1·2편' 포함
 };
 // 실제 슬러그는 스크립트가 목록 조회 결과에서 제목으로 찾아 채운다 (위 키는 제목 기준 표기)
 ```
