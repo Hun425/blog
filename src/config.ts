@@ -10,8 +10,8 @@ export const SITE = {
   ga4Id: '',
   giscus: {
     repo: 'Hun425/blog',
-    repoId: '',
+    repoId: 'R_kgDOUdtZWA',
     category: 'Announcements',
-    categoryId: '',
+    categoryId: 'DIC_kwDOUdtZWM4DFv6c',
   },
 } as const;
