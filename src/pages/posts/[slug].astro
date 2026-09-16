@@ -7,6 +7,7 @@ import Toc from '../../components/Toc.astro';
 import TagList from '../../components/TagList.astro';
 import SeriesNav from '../../components/SeriesNav.astro';
 import SeriesBox from '../../components/SeriesBox.astro';
+import Giscus from '../../components/Giscus.astro';
 import { getPublishedPosts, getSeriesNeighbors } from '../../lib/posts';
 import { url } from '../../lib/url';
 
@@ -28,6 +29,7 @@ const seriesLabel = series ? `시리즈 · ${series.meta.data.title} ${series.po
   <TagList tags={post.data.tags} />
   {post.data.velogUrl && <p class="origin">이 글은 velog에 먼저 올렸던 글입니다 · <a href={post.data.velogUrl} data-outbound="velog" rel="noopener">원문 보기 ↗</a></p>}
   {series && <SeriesNav meta={series.meta} posts={series.posts} current={post} prev={series.prev} next={series.next} />}
+  <Giscus />
   <Fragment slot="aside">
     <Toc {headings} />
     {series && <SeriesBox meta={series.meta} posts={series.posts} currentId={post.id} />}
