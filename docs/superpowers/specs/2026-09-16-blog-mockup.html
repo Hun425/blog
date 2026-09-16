@@ -1,0 +1,439 @@
+<title>Hun425 Blog Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #F4F6F9;
+    --surface: #FFFFFF;
+    --surface-2: #EBEFF4;
+    --line: #D9DFE7;
+    --ink: #111827;
+    --ink-2: #4B5563;
+    --ink-3: #7B8595;
+    --accent: #1F4FD8;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E3EAFB;
+    --code-bg: #0F172A;
+    --code-ink: #E2E8F0;
+    --c-backend: #1F4FD8;
+    --c-cs: #7C3AED;
+    --c-infra: #0F766E;
+    --c-algorithm: #B45309;
+    --c-career: #BE185D;
+    --shadow: 0 1px 2px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.18);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1217; --surface: #161B22; --surface-2: #1F2630; --line: #2A3340;
+      --ink: #E6EAF0; --ink-2: #AAB3C0; --ink-3: #737E8D;
+      --accent: #7B9CFF; --accent-ink: #0B1220; --accent-soft: #1B2540;
+      --code-bg: #0B0F14; --code-ink: #D5DCE6;
+      --c-backend: #7B9CFF; --c-cs: #B896FF; --c-infra: #4FD1C5; --c-algorithm: #F6B26B; --c-career: #F783AC;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1217; --surface: #161B22; --surface-2: #1F2630; --line: #2A3340;
+    --ink: #E6EAF0; --ink-2: #AAB3C0; --ink-3: #737E8D;
+    --accent: #7B9CFF; --accent-ink: #0B1220; --accent-soft: #1B2540;
+    --code-bg: #0B0F14; --code-ink: #D5DCE6;
+    --c-backend: #7B9CFF; --c-cs: #B896FF; --c-infra: #4FD1C5; --c-algorithm: #F6B26B; --c-career: #F783AC;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  a { color: inherit; text-decoration: none; }
+  h1,h2,h3 { text-wrap: balance; margin: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* mockup control bar */
+  .mock-bar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 16px; background: var(--ink); color: var(--bg);
+    font-size: 12px;
+  }
+  .mock-bar .lbl { opacity: .7; letter-spacing: .08em; text-transform: uppercase; }
+  .mock-bar button {
+    font: inherit; font-weight: 600; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent); background: transparent; color: var(--bg); cursor: pointer;
+  }
+  .mock-bar button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+  .mock-bar .spacer { flex: 1; }
+
+  /* site header */
+  .site-header {
+    border-bottom: 1px solid var(--line); background: var(--surface);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+  .site-header .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block; }
+  .nav { display: flex; gap: 18px; color: var(--ink-2); font-size: 14px; margin-left: auto; }
+  .nav a.active { color: var(--ink); font-weight: 600; }
+  .icon-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2);
+    display: grid; place-items: center; color: var(--ink-2); font-size: 14px;
+  }
+
+  /* tabs */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding-block: 18px 6px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: none; display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink-2); font-size: 13.5px; font-weight: 500;
+  }
+  .tab .n { font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tab.active .n { color: inherit; opacity: .7; }
+  .tab .sw { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* grid */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding-block: 14px 48px; }
+  .card {
+    grid-column: span 1; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .card.featured { grid-column: span 2; grid-row: span 2; }
+  .cover {
+    aspect-ratio: 16/9; width: 100%; max-width: 100%; position: relative; overflow: hidden;
+    background: var(--surface-2); display: grid; place-items: center;
+  }
+  .card.featured .cover { aspect-ratio: 16/8.4; }
+  .cover .glyph { font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; opacity: .55; }
+  .cover.backend { background: linear-gradient(135deg, color-mix(in srgb, var(--c-backend) 18%, var(--surface-2)), color-mix(in srgb, var(--c-backend) 40%, var(--surface-2))); }
+  .cover.cs { background: linear-gradient(135deg, color-mix(in srgb, var(--c-cs) 18%, var(--surface-2)), color-mix(in srgb, var(--c-cs) 40%, var(--surface-2))); }
+  .cover.infra { background: linear-gradient(135deg, color-mix(in srgb, var(--c-infra) 18%, var(--surface-2)), color-mix(in srgb, var(--c-infra) 40%, var(--surface-2))); }
+  .cover.algorithm { background: linear-gradient(135deg, color-mix(in srgb, var(--c-algorithm) 18%, var(--surface-2)), color-mix(in srgb, var(--c-algorithm) 40%, var(--surface-2))); }
+  .cover.career { background: linear-gradient(135deg, color-mix(in srgb, var(--c-career) 18%, var(--surface-2)), color-mix(in srgb, var(--c-career) 40%, var(--surface-2))); }
+  .cover .fake-img { position: absolute; inset: 0; opacity: .35;
+    background-image: repeating-linear-gradient(45deg, transparent 0 14px, rgba(255,255,255,.18) 14px 15px); }
+  .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px; width: fit-content;
+  }
+  .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.backend { color: var(--c-backend); background: color-mix(in srgb, var(--c-backend) 12%, transparent); }
+  .chip.cs { color: var(--c-cs); background: color-mix(in srgb, var(--c-cs) 12%, transparent); }
+  .chip.infra { color: var(--c-infra); background: color-mix(in srgb, var(--c-infra) 12%, transparent); }
+  .chip.algorithm { color: var(--c-algorithm); background: color-mix(in srgb, var(--c-algorithm) 12%, transparent); }
+  .chip.career { color: var(--c-career); background: color-mix(in srgb, var(--c-career) 12%, transparent); }
+  .card h3 { font-size: 17px; font-weight: 600; line-height: 1.35; letter-spacing: -.01em; }
+  .card.featured h3 { font-size: 24px; }
+  .card p { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.55;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card.featured p { -webkit-line-clamp: 3; font-size: 14.5px; }
+  .meta { margin-top: auto; padding-top: 6px; display: flex; gap: 10px; align-items: center; color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .meta .series { color: var(--accent); font-weight: 500; }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; padding-top: 6px; }
+  .section-head h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .section-head span { font-size: 12.5px; color: var(--ink-3); }
+
+  /* post page */
+  .post-head { padding-block: 36px 24px; max-width: 760px; }
+  .post-head h1 { font-size: 34px; font-weight: 700; line-height: 1.25; letter-spacing: -.02em; margin-top: 12px; }
+  .post-head .lead { color: var(--ink-2); font-size: 16px; margin: 12px 0 0; }
+  .post-head .meta { padding-top: 16px; font-size: 13px; }
+  .post-cover { border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; aspect-ratio: 21/8; max-width: 100%; margin-bottom: 8px; }
+  .post-layout { display: grid; grid-template-columns: minmax(0, 720px) 240px; gap: 56px; padding-block: 24px 64px; justify-content: space-between; }
+  .article { font-size: 16px; line-height: 1.8; color: var(--ink); }
+  .article h2 { font-size: 22px; font-weight: 700; margin: 40px 0 12px; letter-spacing: -.01em; scroll-margin-top: 80px; }
+  .article h3 { font-size: 17.5px; font-weight: 600; margin: 28px 0 8px; }
+  .article p { margin: 0 0 16px; }
+  .article pre {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 16px 18px; overflow-x: auto;
+    font-size: 13.5px; line-height: 1.6; margin: 0 0 20px; font-family: "IBM Plex Mono", monospace;
+  }
+  .article code:not(pre code) { background: var(--surface-2); padding: 1px 6px; border-radius: 4px; font-size: .92em; font-family: "IBM Plex Mono", monospace; }
+  .article blockquote { margin: 0 0 16px; padding: 10px 18px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; color: var(--ink-2); }
+  .article table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 0 0 20px; }
+  .article th, .article td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  .article th { background: var(--surface-2); font-weight: 600; }
+  .article .kw { color: #7B9CFF; } .article .str { color: #9EE1A5; } .article .cm { color: #7A8797; }
+
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); align-self: start; font-size: 13.5px; }
+  .toc .t { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 10px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  .toc li a { display: block; padding: 5px 0 5px 14px; color: var(--ink-3); border-left: 2px solid transparent; margin-left: -1px; line-height: 1.4; }
+  .toc li.sub a { padding-left: 26px; font-size: 13px; }
+  .toc li.on a { color: var(--ink); border-left-color: var(--accent); font-weight: 500; }
+  .toc .box { margin-top: 26px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  .toc .box b { display: block; font-size: 12px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+  .toc .box a { display: block; color: var(--ink-2); padding: 3px 0; }
+  .toc .box a.cur { color: var(--accent); font-weight: 600; }
+
+  .series-nav { margin-top: 44px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  .series-nav .head { padding: 12px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .series-nav .head b { color: var(--accent); }
+  .series-nav .head span { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .series-nav .pn { display: grid; grid-template-columns: 1fr 1fr; }
+  .series-nav .pn a { padding: 14px 18px; display: flex; flex-direction: column; gap: 3px; }
+  .series-nav .pn a + a { border-left: 1px solid var(--line); text-align: right; }
+  .series-nav .pn small { color: var(--ink-3); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .series-nav .pn strong { font-weight: 600; font-size: 14.5px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+  .tags a { font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); padding: 3px 10px; border-radius: 999px; }
+  .origin { margin-top: 18px; font-size: 13px; color: var(--ink-3); }
+  .origin a { color: var(--accent); }
+  .comments { margin-top: 40px; border: 1px dashed var(--line); border-radius: var(--radius); padding: 28px; text-align: center; color: var(--ink-3); font-size: 13.5px; }
+  .comments b { display: block; color: var(--ink-2); margin-bottom: 4px; }
+
+  .site-footer { border-top: 1px solid var(--line); padding-block: 24px; color: var(--ink-3); font-size: 12.5px; }
+  .site-footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .card.featured { grid-column: span 2; grid-row: auto; }
+    .post-layout { grid-template-columns: 1fr; }
+    .toc { position: static; order: -1; }
+    .toc .box { display: none; }
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; gap: 16px; }
+    .card.featured { grid-column: span 1; }
+    .nav { display: none; }
+    .post-head h1 { font-size: 26px; }
+    .series-nav .pn { grid-template-columns: 1fr; }
+    .series-nav .pn a + a { border-left: 0; border-top: 1px solid var(--line); text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<div class="mock-bar" role="toolbar" aria-label="목업 보기 전환">
+  <span class="lbl">Mockup</span>
+  <button id="btn-home" aria-pressed="true">홈 · 카드 그리드</button>
+  <button id="btn-post" aria-pressed="false">글 본문</button>
+  <span class="spacer"></span>
+  <button id="btn-theme">☾ 다크 / 라이트</button>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#"><span class="dot"></span>hun425.log</a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a class="active" href="#">글</a>
+      <a href="#">시리즈</a>
+      <a href="#">태그</a>
+      <a href="#">이력서 ↗</a>
+    </nav>
+    <span class="icon-btn" aria-hidden="true">◐</span>
+  </div>
+</header>
+
+<!-- ===================== HOME ===================== -->
+<main id="view-home" class="wrap">
+  <div class="tabs" role="tablist" aria-label="카테고리">
+    <a class="tab active" role="tab" aria-selected="true" href="#">전체 <span class="n">102</span></a>
+    <a class="tab" role="tab" href="#"><span class="sw" style="background:var(--c-backend)"></span>Backend <span class="n">46</span></a>
+    <a class="tab" role="tab" href="#"><span class="sw" style="background:var(--c-cs)"></span>CS <span class="n">6</span></a>
+    <a class="tab" role="tab" href="#"><span class="sw" style="background:var(--c-infra)"></span>Infra <span class="n">7</span></a>
+    <a class="tab" role="tab" href="#"><span class="sw" style="background:var(--c-algorithm)"></span>Algorithm <span class="n">35</span></a>
+    <a class="tab" role="tab" href="#"><span class="sw" style="background:var(--c-career)"></span>Career <span class="n">8</span></a>
+  </div>
+
+  <div class="section-head"><h2>Latest</h2><span>카테고리 수치는 태그 기준 추정치입니다</span></div>
+
+  <div class="grid">
+    <a class="card featured" href="#">
+      <div class="cover infra"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip infra">Infra</span>
+        <h3>Terraform 도입기</h3>
+        <p>콘솔에서 손으로 만들던 AWS 리소스를 코드로 옮기면서 겪은 결정들. state 분리 기준, 모듈 경계, 그리고 처음 apply 하다가 만난 실수까지 정리했다.</p>
+        <div class="meta"><span class="mono">2026.08.09</span><span>·</span><span>12분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip backend">Backend</span>
+        <h3>오픈소스 첫 기여해보기</h3>
+        <p>Armeria에 첫 PR을 올리기까지. 이슈 고르기부터 메인테이너 리뷰 대응까지의 기록.</p>
+        <div class="meta"><span class="mono">2026.05.17</span><span>·</span><span>9분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover career"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip career">Career</span>
+        <h3>AI 페어프로그래밍의 한계</h3>
+        <p>반년 동안 AI와 짝 코딩을 하며 느낀 것. 잘 되는 일과 여전히 사람이 해야 하는 일.</p>
+        <div class="meta"><span class="mono">2026.04.19</span><span>·</span><span>7분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip backend">Backend</span>
+        <h3>TPR vs EventLoop</h3>
+        <p>Thread-per-request 모델과 이벤트 루프 모델을 ThreadLocal 관점에서 비교한다.</p>
+        <div class="meta"><span class="mono">2026.04.05</span><span>·</span><span>8분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip backend">Backend</span>
+        <h3>가독성 좋은 코드란?</h3>
+        <p>이름, 길이, 추상화 수준. 팀에서 리뷰하며 합의한 가독성의 기준을 정리했다.</p>
+        <div class="meta"><span class="mono">2026.03.30</span><span>·</span><span>6분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover career"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip career">Career</span>
+        <h3>두 번째 회사를 마무리하며</h3>
+        <p>1년 반의 기록. 무엇을 배웠고 무엇을 다음 회사로 가져갈지.</p>
+        <div class="meta"><span class="mono">2026.02.14</span><span>·</span><span>5분</span><span class="series">회고 3/3</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip backend">Backend</span>
+        <h3>통계에서 Redis 활용하기</h3>
+        <p>집계 쿼리가 느려질 때 Redis 자료구조로 실시간 통계를 만드는 방법.</p>
+        <div class="meta"><span class="mono">2026.01.10</span><span>·</span><span>10분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+      <div class="body">
+        <span class="chip backend">Backend</span>
+        <h3>레거시 시스템 위에서 아키텍처 설계하기</h3>
+        <p>갈아엎을 수 없는 시스템에 경계를 긋고 새 기능을 얹는 방법.</p>
+        <div class="meta"><span class="mono">2025.12.20</span><span>·</span><span>11분</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="cover algorithm"><div class="fake-img"></div><span class="glyph">default · algorithm</span></div>
+      <div class="body">
+        <span class="chip algorithm">Algorithm</span>
+        <h3>2026 카카오 코테 1차 &amp; 2차 리뷰</h3>
+        <p>문제별 접근과 시간 배분 실패기. 다음에 다르게 할 것.</p>
+        <div class="meta"><span class="mono">2025.10.04</span><span>·</span><span>8분</span></div>
+      </div>
+    </a>
+  </div>
+</main>
+
+<!-- ===================== POST ===================== -->
+<main id="view-post" class="wrap" hidden>
+  <div class="post-head">
+    <span class="chip backend">Backend</span>
+    <h1>프로젝트 TDD 도입기</h1>
+    <p class="lead">테스트 없던 프로젝트에 TDD를 들여오며 겪은 저항과 타협, 그리고 남은 것.</p>
+    <div class="meta"><span class="mono">2025.09.12</span><span>·</span><span>9분 읽기</span><span>·</span><span class="series">시리즈 · TDD 도입기 2/3</span></div>
+  </div>
+  <div class="post-cover cover backend"><div class="fake-img"></div><span class="glyph">cover.png</span></div>
+
+  <div class="post-layout">
+    <article class="article">
+      <h2 id="s1">왜 지금 TDD인가</h2>
+      <p>기능 추가마다 회귀가 터지던 시점이었다. 수동 QA에 하루가 통째로 들어가는 상황을 보면서, 테스트를 나중에 붙이는 방식으로는 이 부채를 갚을 수 없다고 판단했다.</p>
+      <blockquote>테스트가 먼저 있어야 리팩토링이 가능하고, 리팩토링이 가능해야 설계가 나아진다.</blockquote>
+      <h2 id="s2">첫 번째 시도와 저항</h2>
+      <h3 id="s2-1">팀의 반응</h3>
+      <p>"일정이 두 배로 늘어난다"는 우려가 가장 컸다. 실제로 첫 스프린트는 느렸다. 하지만 두 번째 스프린트부터 버그 티켓이 눈에 띄게 줄었다.</p>
+      <h3 id="s2-2">도구 선택</h3>
+      <p>JUnit 5와 Kotest 사이에서 고민하다가 팀이 이미 익숙한 JUnit 5를 선택했다. 도구보다 습관이 먼저였다.</p>
+      <pre><code><span class="cm">// 실패하는 테스트를 먼저 쓴다</span>
+<span class="kw">@Test</span>
+<span class="kw">fun</span> `주문 금액이 0원이면 결제를 거부한다`() {
+    <span class="kw">val</span> order = Order(amount = <span class="str">0</span>)
+    assertThrows&lt;InvalidOrderException&gt; { paymentService.pay(order) }
+}</code></pre>
+      <h2 id="s3">두 달 뒤 지표</h2>
+      <table>
+        <thead><tr><th>지표</th><th>도입 전</th><th>도입 후</th></tr></thead>
+        <tbody>
+          <tr><td>스프린트당 회귀 버그</td><td>7건</td><td>2건</td></tr>
+          <tr><td>수동 QA 시간</td><td>8시간</td><td>2시간</td></tr>
+          <tr><td>라인 커버리지</td><td>11%</td><td>58%</td></tr>
+        </tbody>
+      </table>
+      <p>숫자 자체보다 팀이 리팩토링을 두려워하지 않게 된 변화가 더 컸다. 다음 편에서는 레거시 코드에 테스트를 끼워 넣는 기법을 다룬다.</p>
+
+      <div class="tags"><a href="#">#TDD</a><a href="#">#Java</a><a href="#">#Spring</a><a href="#">#project</a></div>
+      <p class="origin">이 글은 velog에 먼저 올렸던 글입니다 · <a href="#">원문 보기 ↗</a></p>
+
+      <nav class="series-nav" aria-label="시리즈 이동">
+        <div class="head"><b>시리즈 · TDD 도입기</b><span>2 / 3</span></div>
+        <div class="pn">
+          <a href="#"><small>← 이전 편</small><strong>테스트 없는 프로젝트 진단하기</strong></a>
+          <a href="#"><small>다음 편 →</small><strong>레거시에 테스트 끼워 넣기</strong></a>
+        </div>
+      </nav>
+
+      <div class="comments"><b>댓글 · giscus</b>GitHub Discussions 위젯이 여기에 로드됩니다. GitHub 계정으로 댓글을 남길 수 있습니다.</div>
+    </article>
+
+    <aside class="toc" aria-label="목차">
+      <div class="t">On this page</div>
+      <ol>
+        <li><a href="#s1">왜 지금 TDD인가</a></li>
+        <li class="on"><a href="#s2">첫 번째 시도와 저항</a></li>
+        <li class="sub"><a href="#s2-1">팀의 반응</a></li>
+        <li class="sub"><a href="#s2-2">도구 선택</a></li>
+        <li><a href="#s3">두 달 뒤 지표</a></li>
+      </ol>
+      <div class="box">
+        <b>시리즈 · TDD 도입기</b>
+        <a href="#">1. 테스트 없는 프로젝트 진단하기</a>
+        <a class="cur" href="#">2. 프로젝트 TDD 도입기</a>
+        <a href="#">3. 레거시에 테스트 끼워 넣기</a>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Hun425 · hun425.github.io/blog</span>
+    <span>RSS · GitHub · 이력서</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var home = document.getElementById('view-home');
+    var post = document.getElementById('view-post');
+    var bh = document.getElementById('btn-home');
+    var bp = document.getElementById('btn-post');
+    function show(which) {
+      var isHome = which === 'home';
+      home.hidden = !isHome; post.hidden = isHome;
+      bh.setAttribute('aria-pressed', String(isHome));
+      bp.setAttribute('aria-pressed', String(!isHome));
+      window.scrollTo(0, 0);
+    }
+    bh.addEventListener('click', function () { show('home'); });
+    bp.addEventListener('click', function () { show('post'); });
+    document.getElementById('btn-theme').addEventListener('click', function () {
+      var root = document.documentElement;
+      var dark = root.getAttribute('data-theme') === 'dark' ||
+        (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    });
+  })();
+</script>
