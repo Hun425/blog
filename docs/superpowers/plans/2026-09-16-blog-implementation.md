@@ -66,6 +66,9 @@
 | `scripts/velog/client.ts` | GraphQL 호출 (목록·단건) |
 | `scripts/velog/transform.ts` | 슬러그·카테고리·이미지 링크 치환·frontmatter 생성 (순수) |
 | `scripts/migrate-velog.ts` | 오케스트레이션 + 이미지 다운로드 + 보고서 |
+| `scripts/obsidian/convert.ts` | 옵시디언 문법 → 표준 마크다운 (순수) |
+| `scripts/import-obsidian.ts` | 초안 → 글 폴더 생성 + 첨부 복사 |
+| `.claude/skills/publish-post/SKILL.md` | 초안 발행 절차 스킬 |
 | `tests/unit/*.test.ts` | vitest |
 | `tests/e2e/*.spec.ts` | Playwright |
 | `.github/workflows/ci.yml` | PR: check/test/build |
@@ -2184,3 +2187,190 @@ Expected: 배포 후 본문 페이지에 giscus 위젯이 뜨고, GA4 실시간 
 - [ ] **Step 6: 옵시디언 문서 상태 갱신**
 
 `~/Desktop/project/obsidain/1_Projects/블로그/블로그 설계.md` 머리의 상태 줄을 `> 상태: 배포 완료 (YYYY-MM-DD) · https://hun425.github.io/blog` 로 바꾸고, 이전 보고서 요약(카테고리별 건수, 이미지 실패 건수)을 문서 끝에 `## 이전 결과` 절로 덧붙인다.
+
+---
+
+### Task 15: 옵시디언 초안 → 블로그 글 가져오기 (스크립트 + 스킬)
+
+**Files:**
+- Create: `scripts/import-obsidian.ts`, `scripts/obsidian/convert.ts`, `tests/unit/obsidian-convert.test.ts`, `.claude/skills/publish-post/SKILL.md`
+- Modify: `scripts/velog/transform.ts` (`buildFrontmatter` 의 `velogUrl` 을 선택 필드로)
+- Create (옵시디언): `~/Desktop/project/obsidain/1_Projects/블로그/초안/`, `~/Desktop/project/obsidain/1_Projects/블로그/발행/`
+
+**Interfaces:**
+- `convert.ts` (순수): `convertObsidian(md: string): { body: string; attachments: string[]; title?: string }`
+  - `![[img.png]]` / `![[img.png|300]]` → `![](./img-NN.png)` 로 치환하고 `attachments` 에 원본 파일명을 순서대로 기록
+  - `[[노트]]`, `[[노트|표시]]` → `표시` 또는 `노트` 텍스트 (링크 제거)
+  - `> [!note] 제목` 콜아웃 첫 줄 → `> **제목**`, 제목 없으면 그 줄 제거. 나머지 인용은 유지
+  - `==강조==` → `**강조**`
+  - 첫 `# 제목` 줄은 `title` 로 뽑고 본문에서 제거
+- `import-obsidian.ts`: `node scripts/import-obsidian.ts <초안.md> --slug <slug> --category <c> --description "<요약>" [--tags a,b] [--date YYYY-MM-DD] [--force]`
+  - 첨부 파일 탐색 순서: 초안과 같은 폴더 → 볼트 루트 `img/` → 초안 폴더의 `attachments/`
+  - frontmatter 는 Task 11 의 `buildFrontmatter` 재사용
+  - `src/content/posts/<date>-<slug>/index.md` 생성. 이미 있으면 `--force` 없이는 중단
+
+- [ ] **Step 1: 실패하는 테스트**
+
+```ts
+// tests/unit/obsidian-convert.test.ts
+import { describe, it, expect } from 'vitest';
+import { convertObsidian } from '../../scripts/obsidian/convert';
+
+describe('convertObsidian', () => {
+  it('이미지 임베드 → 로컬 경로 + 첨부 목록', () => {
+    const r = convertObsidian('본문\n![[Pasted image 1.png]]\n![[b.jpg|300]]');
+    expect(r.attachments).toEqual(['Pasted image 1.png', 'b.jpg']);
+    expect(r.body).toBe('본문\n![](./img-01.png)\n![](./img-02.jpg)');
+  });
+  it('위키링크는 텍스트로', () => {
+    expect(convertObsidian('[[다른 글]] 과 [[노트|표시명]]').body).toBe('다른 글 과 표시명');
+  });
+  it('콜아웃 → 굵은 제목 인용', () => {
+    expect(convertObsidian('> [!note] 주의\n> 내용').body).toBe('> **주의**\n> 내용');
+    expect(convertObsidian('> [!tip]\n> 내용').body).toBe('> 내용');
+  });
+  it('하이라이트 → 굵게', () => {
+    expect(convertObsidian('이건 ==중요== 하다').body).toBe('이건 **중요** 하다');
+  });
+  it('첫 H1 은 title 로 뽑고 본문에서 제거', () => {
+    const r = convertObsidian('# 제목이다\n\n본문');
+    expect(r.title).toBe('제목이다');
+    expect(r.body).toBe('본문');
+  });
+});
+```
+
+- [ ] **Step 2: 실행 → 실패 확인**
+
+Run: `npm test -- obsidian`
+Expected: FAIL — module not found
+
+- [ ] **Step 3: 구현**
+
+```ts
+// scripts/obsidian/convert.ts
+const DROP = '@@DROP-LINE@@';
+
+export function convertObsidian(md: string): { body: string; attachments: string[]; title?: string } {
+  const attachments: string[] = [];
+  let title: string | undefined;
+  let body = md;
+
+  const h1 = body.match(/^# (.+)\n?/m);
+  if (h1) { title = h1[1].trim(); body = body.replace(h1[0], ''); }
+
+  body = body.replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (_m, file: string) => {
+    const name = file.trim();
+    const i = attachments.push(name);
+    return `![](./img-${String(i).padStart(2, '0')}${name.slice(name.lastIndexOf('.'))})`;
+  });
+  body = body.replace(/\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g, (_m, note: string, label?: string) => (label ?? note).trim());
+  body = body.replace(/^> \[!\w+\][ ]*(.*)$/gm, (_m, t: string) => (t.trim() ? `> **${t.trim()}**` : DROP));
+  body = body.split('\n').filter((line) => line !== DROP).join('\n');
+  body = body.replace(/==([^=\n]+)==/g, '**$1**');
+
+  return { body: body.trim(), attachments, title };
+}
+```
+
+```ts
+// scripts/import-obsidian.ts
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
+import { join, dirname, basename, extname } from 'node:path';
+import { parseArgs } from 'node:util';
+import { convertObsidian } from './obsidian/convert';
+import { buildFrontmatter } from './velog/transform';
+import { isCategory } from '../src/lib/categories';
+
+const { values, positionals } = parseArgs({
+  allowPositionals: true,
+  options: {
+    slug: { type: 'string' }, category: { type: 'string' }, description: { type: 'string' },
+    tags: { type: 'string', default: '' }, date: { type: 'string', default: new Date().toISOString().slice(0, 10) },
+    force: { type: 'boolean', default: false },
+  },
+});
+const src = positionals[0];
+if (!src || !values.slug || !values.category || !values.description)
+  throw new Error('usage: import-obsidian <초안.md> --slug --category --description [--tags] [--date] [--force]');
+if (!isCategory(values.category)) throw new Error(`unknown category: ${values.category}`);
+if (values.description.length > 160) throw new Error('description must be ≤ 160 chars');
+
+const VAULT = '/Users/hun/Desktop/project/obsidain';
+const { body, attachments, title } = convertObsidian(readFileSync(src, 'utf-8'));
+if (!title) throw new Error('초안 첫 줄에 "# 제목" 이 필요합니다');
+
+const dir = join('src/content/posts', `${values.date}-${values.slug}`);
+if (existsSync(dir) && !values.force) throw new Error(`${dir} already exists (use --force)`);
+mkdirSync(dir, { recursive: true });
+
+const searchDirs = [dirname(src), join(VAULT, 'img'), join(dirname(src), 'attachments')];
+attachments.forEach((file, i) => {
+  const found = searchDirs.map((d) => join(d, file)).find(existsSync);
+  if (!found) throw new Error(`attachment not found: ${file}`);
+  copyFileSync(found, join(dir, `img-${String(i + 1).padStart(2, '0')}${extname(file)}`));
+});
+
+const tags = values.tags ? values.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+const cover = attachments.length ? `./img-01${extname(attachments[0])}` : undefined;
+const fm = buildFrontmatter({ title, description: values.description, date: values.date, category: values.category, tags, cover });
+writeFileSync(join(dir, 'index.md'), fm + '\n' + body + '\n');
+console.log(`wrote ${dir}/index.md (${attachments.length} images) from ${basename(src)}`);
+```
+
+`scripts/velog/transform.ts` 의 `buildFrontmatter` 는 `velogUrl?: string` 으로 바꾸고, 값이 없으면 `velogUrl:` 줄을 넣지 않는다. Task 11 의 테스트는 그대로 통과해야 한다.
+
+- [ ] **Step 4: 스킬 문서와 옵시디언 폴더**
+
+```md
+<!-- .claude/skills/publish-post/SKILL.md -->
+---
+name: publish-post
+description: 옵시디언 초안(1_Projects/블로그/초안/*.md)을 블로그 글로 변환해 커밋·푸시·배포하고 원본을 발행/ 으로 옮긴다. "이 글 올려줘", "초안 발행", "블로그에 올려" 요청 시 사용.
+---
+
+# publish-post
+
+1. 초안 파일을 읽는다. 첫 줄 `# 제목` 이 없으면 제목을 묻는다.
+2. 본문을 보고 세 가지를 제안하고 **한 번에** 확인받는다: `slug`(영문 소문자-하이픈), `category`(backend/cs/infra/algorithm/career), `description`(160자 이하, 첫 문단 요약). 태그도 함께 제안한다.
+3. 확인 후 실행: `node scripts/import-obsidian.ts "<초안 경로>" --slug <slug> --category <c> --description "<d>" --tags a,b`
+4. `npm run check && npm run build` 가 PASS 인지 확인한다. 실패하면 원인을 고치고 다시 실행한다 (description 길이·이미지 누락이 대부분).
+5. 커밋: `git add src/content/posts/<폴더> && git commit -m "글: <제목>"` 후 `git push`.
+6. 배포 URL `https://hun425.github.io/blog/posts/<slug>/` 을 알려 준다. Actions 완료까지 1~2분.
+7. 옵시디언 원본을 `1_Projects/블로그/발행/` 로 옮기고, 파일 머리에 `> 발행: <URL> (<날짜>)` 한 줄을 추가한다.
+8. velog 크로스포스팅을 원하면 변환된 `index.md` 본문(frontmatter 제외)을 그대로 붙여넣을 수 있다고 안내한다. velog 업로드는 사용자가 직접 한다.
+
+주의: 첨부 이미지는 초안과 같은 폴더 → 볼트 `img/` → `attachments/` 순으로 찾는다. 못 찾으면 중단하고 파일 위치를 묻는다.
+```
+
+```bash
+mkdir -p ~/Desktop/project/obsidain/1_Projects/블로그/초안 ~/Desktop/project/obsidain/1_Projects/블로그/발행
+```
+
+- [ ] **Step 5: 테스트 + 실제 초안 1건으로 종단 확인**
+
+Run: `npm test`
+Expected: obsidian-convert 5 passed, velog-transform 도 여전히 PASS.
+
+옵시디언 `초안/테스트 글.md` 에 아래 내용을 쓰고 가져오기·빌드·정리를 순서대로 실행한다.
+
+```md
+# 테스트 글
+
+본문 ==강조==
+> [!note] 메모
+> 내용
+```
+
+```bash
+node scripts/import-obsidian.ts "$HOME/Desktop/project/obsidain/1_Projects/블로그/초안/테스트 글.md" --slug test-post --category career --description "가져오기 확인용" --date 2026-01-01
+npm run check && npm run build && ls dist/posts/test-post/index.html
+rm -rf src/content/posts/2026-01-01-test-post "$HOME/Desktop/project/obsidain/1_Projects/블로그/초안/테스트 글.md"
+```
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add -A
+git commit -m "feat: 옵시디언 초안 가져오기 스크립트와 publish-post 스킬 추가"
+```
