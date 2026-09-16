@@ -1,43 +1,8 @@
-# Astro Starter Kit: Minimal
+# hun425.log
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Astro 기반 기술 블로그. https://hun425.github.io/blog
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- `npm run dev` 개발 서버 · `npm run build` 빌드 · `npm run check` 타입/스키마 · `npm test` 단위 · `npm run test:e2e` 스모크
+- 글 추가: `src/content/posts/YYYY-MM-DD-<slug>/index.md` (frontmatter 는 `src/content.config.ts` 참고)
+- 시리즈: `src/content/series/<id>.md` 만들고 글 frontmatter 에 `series: { id, order }`
+- 설계: `docs/superpowers/specs/2026-09-16-blog-design.md`
