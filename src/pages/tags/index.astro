@@ -1,0 +1,18 @@
+---
+// src/pages/tags/index.astro
+import Base from '../../layouts/Base.astro';
+import { allTags } from '../../lib/posts';
+import { url } from '../../lib/url';
+const tags = [...(await allTags()).entries()].sort((a, b) => b[1].length - a[1].length);
+---
+<Base title="태그" description="전체 태그 목록">
+  <main class="wrap">
+    <h1 class="page-title">태그 <span class="n">{tags.length}</span></h1>
+    <div class="cloud">{tags.map(([t, ps]) => <a href={url(`tags/${encodeURIComponent(t)}/`)}>#{t} <span>{ps.length}</span></a>)}</div>
+  </main>
+</Base>
+<style>
+  .cloud { display:flex; flex-wrap:wrap; gap:8px; padding-block:12px 48px; }
+  .cloud a { font-size:13.5px; color:var(--ink-2); background:var(--surface-2); padding:5px 12px; border-radius:999px; }
+  .cloud span { color:var(--ink-3); font-size:12px; }
+</style>

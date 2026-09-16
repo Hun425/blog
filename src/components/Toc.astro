@@ -1,0 +1,36 @@
+---
+// src/components/Toc.astro
+import type { MarkdownHeading } from 'astro';
+interface Props { headings: MarkdownHeading[]; }
+const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+{items.length > 0 && (
+  <nav class="toc" aria-label="목차">
+    <div class="t">On this page</div>
+    <ol>
+      {items.map((h) => <li class:list={{ sub: h.depth === 3 }}><a href={`#${h.slug}`} data-toc={h.slug}>{h.text}</a></li>)}
+    </ol>
+  </nav>
+)}
+<style>
+  .toc { font-size:13.5px; }
+  .t { font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:600; margin-bottom:10px; }
+  ol { list-style:none; margin:0; padding:0; border-left:1px solid var(--line); }
+  li a { display:block; padding:5px 0 5px 14px; color:var(--ink-3); border-left:2px solid transparent; margin-left:-1px; line-height:1.4; }
+  li.sub a { padding-left:26px; font-size:13px; }
+  li.on a { color:var(--ink); border-left-color:var(--accent); font-weight:500; }
+</style>
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc]')];
+  const byId = new Map(links.map((a) => [a.dataset.toc!, a.parentElement!]));
+  const headings = links.map((a) => document.getElementById(a.dataset.toc!)).filter(Boolean) as HTMLElement[];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      byId.forEach((li) => li.classList.remove('on'));
+      byId.get(e.target.id)?.classList.add('on');
+    }
+  }, { rootMargin: '-72px 0px -70% 0px', threshold: 0 });
+  headings.forEach((h) => io.observe(h));
+  links.forEach((a) => a.addEventListener('click', () =>
+    document.dispatchEvent(new CustomEvent('blog:toc_click', { detail: { heading: a.textContent ?? '' } }))));
+</script>

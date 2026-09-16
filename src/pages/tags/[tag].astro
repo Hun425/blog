@@ -1,0 +1,21 @@
+---
+// src/pages/tags/[tag].astro
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { allTags } from '../../lib/posts';
+export async function getStaticPaths() {
+  const tags = await allTags();
+  return [...tags.entries()].map(([tag, posts]) => ({ params: { tag }, props: { tag, posts } }));
+}
+const { tag, posts } = Astro.props;
+---
+<Base title={`#${tag}`} description={`${tag} 태그 글 ${posts.length}건`}>
+  <main class="wrap">
+    <h1 class="page-title">#{tag} <span class="n">{posts.length}</span></h1>
+    <div class="grid">{posts.map((post) => <PostCard {post} />)}</div>
+  </main>
+</Base>
+<style is:global>
+  .page-title { font-size:24px; font-weight:700; padding-block:28px 8px; }
+  .page-title .n { color:var(--ink-3); font-size:16px; font-weight:500; margin-left:6px; }
+</style>

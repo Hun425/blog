@@ -1,0 +1,12 @@
+---
+// src/components/TagList.astro
+import { url } from '../lib/url';
+interface Props { tags: string[]; }
+---
+{Astro.props.tags.length > 0 && (
+  <div class="tags">{Astro.props.tags.map((t) => <a href={url(`tags/${encodeURIComponent(t)}/`)}>#{t}</a>)}</div>
+)}
+<style>
+  .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:28px; }
+  a { font-size:12.5px; color:var(--ink-2); background:var(--surface-2); padding:3px 10px; border-radius:999px; }
+</style>

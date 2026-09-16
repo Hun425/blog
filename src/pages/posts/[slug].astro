@@ -1,0 +1,27 @@
+---
+// src/pages/posts/[slug].astro
+import { render } from 'astro:content';
+import Post from '../../layouts/Post.astro';
+import PostHeader from '../../components/PostHeader.astro';
+import Toc from '../../components/Toc.astro';
+import TagList from '../../components/TagList.astro';
+import { getPublishedPosts } from '../../lib/posts';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const image = post.data.cover
+  ? new URL(post.data.cover.src, Astro.site).href
+  : new URL(url(`og/${post.data.category}.png`), Astro.site).href;
+---
+<Post title={post.data.title} description={post.data.description} {image} publishedTime={post.data.date.toISOString()}>
+  <PostHeader slot="header" {post} />
+  <Content />
+  <TagList tags={post.data.tags} />
+  {post.data.velogUrl && <p class="origin">이 글은 velog에 먼저 올렸던 글입니다 · <a href={post.data.velogUrl} data-outbound="velog" rel="noopener">원문 보기 ↗</a></p>}
+  <Toc slot="aside" {headings} />
+</Post>

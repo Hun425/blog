@@ -1,0 +1,11 @@
+---
+// src/pages/404.astro
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+<Base title="404">
+  <main class="wrap" style="padding-block:80px; text-align:center;">
+    <h1>페이지를 찾을 수 없습니다</h1>
+    <p><a href={url()} style="color:var(--accent)">홈으로</a></p>
+  </main>
+</Base>

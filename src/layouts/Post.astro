@@ -1,0 +1,32 @@
+---
+// src/layouts/Post.astro
+import Base from './Base.astro';
+interface Props { title: string; description: string; image?: string; publishedTime: string; }
+---
+<Base {...Astro.props} type="article">
+  <main class="wrap">
+    <slot name="header" />
+    <div class="post-layout">
+      <article class="article"><slot /></article>
+      <aside class="aside"><slot name="aside" /></aside>
+    </div>
+  </main>
+</Base>
+<style is:global>
+  .post-layout { display:grid; grid-template-columns:minmax(0,720px) 240px; gap:56px; padding-block:24px 64px; justify-content:space-between; }
+  .aside { position:sticky; top:72px; align-self:start; display:flex; flex-direction:column; gap:26px; }
+  .article { font-size:16px; line-height:1.8; }
+  .article h2 { font-size:22px; font-weight:700; margin:40px 0 12px; letter-spacing:-.01em; scroll-margin-top:80px; }
+  .article h3 { font-size:17.5px; font-weight:600; margin:28px 0 8px; scroll-margin-top:80px; }
+  .article p { margin:0 0 16px; }
+  .article pre { border-radius:8px; padding:16px 18px; overflow-x:auto; font-size:13.5px; line-height:1.6; margin:0 0 20px; position:relative; }
+  .article :not(pre) > code { background:var(--surface-2); padding:1px 6px; border-radius:4px; font-size:.92em; font-family:"IBM Plex Mono",monospace; }
+  .article blockquote { margin:0 0 16px; padding:10px 18px; border-left:3px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; color:var(--ink-2); }
+  .article table { border-collapse:collapse; width:100%; font-size:14px; margin:0 0 20px; display:block; overflow-x:auto; }
+  .article th, .article td { border:1px solid var(--line); padding:8px 12px; text-align:left; }
+  .article th { background:var(--surface-2); font-weight:600; }
+  .article img { border-radius:8px; }
+  .origin { margin-top:18px; font-size:13px; color:var(--ink-3); }
+  .origin a { color:var(--accent); }
+  @media (max-width:900px) { .post-layout { grid-template-columns:1fr; } .aside { position:static; order:-1; } }
+</style>
