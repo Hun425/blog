@@ -161,22 +161,47 @@ scripts/migrate-velog.ts   (npm run migrate)
 3. 이미지: body 내 https://velog.velcdn.com/... 전부 다운로드 → ./img-NN.<ext>, 링크 치환. thumbnail → ./cover.<ext>
 4. 폴더  : YYYY-MM-DD-<slug>
 5. frontmatter: title / description(short_description, 160자 컷) / date / category(자동) / tags / cover / velogUrl / series
-6. velog 시리즈 → src/content/series/<slug>.md 자동 생성
+6. velog 시리즈는 카테고리로만 사용, series 컬렉션은 생성하지 않음
 7. 보고서: scripts/migrate-report.md (분류 결과, 미분류 목록, 이미지 실패 목록, 시리즈 목록)
 ```
 
-카테고리 자동 분류 (태그 → 없으면 제목, 위에서부터 첫 매치):
+카테고리 분류 (2026-09-16 실측: 102건 전부 velog 시리즈 6개 중 하나에 속함 → 시리즈를 카테고리로 직접 매핑, 태그 정규식 폐기):
 
 ```ts
-const RULES: Array<[Category, RegExp]> = [
-  ['algorithm', /백준|알고리즘|코딩테스트|leetcode|코드포스|BFS|DFS|DP|다익스트라|투 ?포인터|백트래킹|UnionFind|MST|위상정렬|greedy|비트마스킹|재귀|B형|삼성|카카오/i],
-  ['career',    /회고|면접|취업|이직|회사|SI|후기|SSAFY/i],
-  ['infra',     /Infra|terraform|쿠버네티스|kafka|spark|redis|elasticsearch|K6/i],
-  ['cs',        /^CS$|운영체제|프로세스|네트워크|http|자료구조|메모리|heap|stack|HashTable|동기|비동기|블로킹/i],
-  ['backend',   /Java|Kotlin|Spring|JPA|JVM|GC|MyBatis|gradle|maven|servlet|JWT|session|TDD|OOP|SOLID|함수형|설계|가독성|Armeria|n\+1|Cache|REST/i],
-];
-// 미분류 → category: backend 로 임시 지정 + 보고서에 UNMAPPED 표시 → 사용자 확인 후 수정
+// velog 시리즈 → 카테고리. 사용자가 velog 시리즈를 사실상 카테고리로 써 왔음
+const SERIES_TO_CATEGORY: Record<string, Category | null> = {
+  Algorithm: 'algorithm',  // 37
+  CS:        'cs',         // 15
+  Spring:    'backend',    //  5
+  Project:   'backend',    //  9
+  일상:      'career',     //  7
+  회사:      null,         // 29 → 아래 개별 매핑
+};
+
+// '회사' 시리즈 29건 개별 매핑 (velog url_slug 기준). 제안안 — 사용자 확인 대기
+const OVERRIDES: Record<string, Category> = {
+  // infra (4)
+  'Terraform-도입기': 'infra',
+  'Discord가-수조-개의-메세지를-인덱싱하는-방법': 'infra',
+  '1억-4천만행-데이터-처리-시스템-구축하기-1편': 'infra',
+  '1억-4천만행-데이터-처리-시스템-구축하기-2편': 'infra',
+  // career (4)
+  'AI-페어프로그래밍의-한계': 'career',
+  '두-번째-회사를-마무리하며': 'career',
+  '두-번째-회사-입사-후기': 'career',
+  '첫-SI-회사-회고록': 'career',
+  // cs (2)
+  'OOP-vs-함수형-프로그래밍': 'cs',
+  '데이터베이스-정규화와-비정규화에-대한-고찰': 'cs',
+  // 나머지 19건 → backend (기본값)
+};
+// 실제 슬러그는 스크립트가 목록 조회 결과에서 제목으로 찾아 채운다 (위 키는 제목 기준 표기)
 ```
+
+- velog 시리즈는 새 블로그의 시리즈로 **옮기지 않는다** (연재물이 아니라 분류이므로). `src/content/series/` 는 빈 상태로 시작하고, 진짜 연재물은 이전 후 수동으로 묶는다.
+- 매핑에 없는 시리즈나 시리즈 없는 글이 생기면 `backend` 임시 지정 + 보고서 UNMAPPED.
+
+검증 근거 (2026-09-16 실측): 목록 102건 페이징 조회 성공, 단건 조회 102건 오류 0, 전부 `is_markdown: true`, `short_description` 제공, velcdn 이미지 200 OK.
 
 - 스크립트는 멱등: 이미 있는 폴더는 건너뛴다 (`--force` 로 덮어쓰기).
 - 이전 완료 후 마크다운·이미지는 커밋. 스크립트는 남겨 두되 다시 실행할 일은 없다.
@@ -214,7 +239,7 @@ type Event =
 |---|---|---|
 | 타입·스키마 | `npm run check` (`astro check`) | 카테고리 오타, 시리즈 참조 누락, frontmatter 타입 |
 | 빌드 | `npm run build` | 102건 렌더, order 중복, 깨진 내부 링크 |
-| 단위 | `npm test` (vitest) | `readingTime`, `prevNext`, 슬러그 정규화, 카테고리 분류 규칙 |
+| 단위 | `npm test` (vitest) | `readingTime`, `prevNext`, 슬러그 정규화, 시리즈→카테고리 매핑 |
 | E2E | `npm run test:e2e` (Playwright) | 홈 카드 렌더, 탭 필터, TOC 앵커 이동, 다크 토글 |
 | CI | PR: check+build+test / main: deploy | |
 
