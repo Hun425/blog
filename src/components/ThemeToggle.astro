@@ -1,0 +1,20 @@
+---
+// src/components/ThemeToggle.astro
+---
+<button id="theme-toggle" class="icon-btn" type="button" aria-label="테마 전환" title="테마 전환">
+  <span class="sun" aria-hidden="true">☼</span><span class="moon" aria-hidden="true">☾</span>
+</button>
+<style>
+  .icon-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); display:grid; place-items:center; color:var(--ink-2); font-size:14px; cursor:pointer; }
+  .moon, :global(:root[data-theme="dark"]) .sun { display:none; }
+  :global(:root[data-theme="dark"]) .moon { display:inline; }
+</style>
+<script>
+  const btn = document.getElementById('theme-toggle')!;
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch {}
+    window.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+  });
+</script>

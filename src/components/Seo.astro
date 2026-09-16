@@ -1,0 +1,22 @@
+---
+// src/components/Seo.astro
+import { SITE } from '../config';
+interface Props { title: string; description: string; canonical: string; image: string; type: 'website' | 'article'; publishedTime?: string; }
+const { title, description, canonical, image, type, publishedTime } = Astro.props;
+const fullTitle = title === SITE.title ? title : `${title} · ${SITE.title}`;
+const jsonLd = type === 'article'
+  ? { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, image, datePublished: publishedTime, author: { '@type': 'Person', name: SITE.author }, mainEntityOfPage: canonical }
+  : { '@context': 'https://schema.org', '@type': 'Blog', name: SITE.title, description, url: canonical };
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta property="og:locale" content="ko_KR" />
+<meta name="twitter:card" content="summary_large_image" />
+{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

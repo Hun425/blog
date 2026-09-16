@@ -1,0 +1,29 @@
+---
+// src/components/Header.astro
+import { SITE } from '../config';
+import { url } from '../lib/url';
+import ThemeToggle from './ThemeToggle.astro';
+const path = Astro.url.pathname;
+const is = (p: string) => path.startsWith(url(p));
+---
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href={url()}><span class="dot"></span>{SITE.title}</a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a class:list={{ active: path === url() || is('posts') || is('category') }} href={url()}>글</a>
+      <a class:list={{ active: is('series') }} href={url('series/')}>시리즈</a>
+      <a class:list={{ active: is('tags') }} href={url('tags/')}>태그</a>
+      <a href={SITE.resumeUrl} data-outbound="resume">이력서 ↗</a>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+<style>
+  .site-header { border-bottom:1px solid var(--line); background:var(--surface); }
+  .wrap { display:flex; align-items:center; gap:24px; height:60px; }
+  .brand { font-weight:700; font-size:17px; letter-spacing:-.01em; display:flex; align-items:center; gap:8px; }
+  .dot { width:10px; height:10px; border-radius:3px; background:var(--accent); }
+  .nav { display:flex; gap:18px; color:var(--ink-2); font-size:14px; margin-left:auto; }
+  .nav a.active { color:var(--ink); font-weight:600; }
+  @media (max-width:560px) { .nav { gap:12px; font-size:13px; } }
+</style>

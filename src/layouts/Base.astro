@@ -1,0 +1,42 @@
+---
+// src/layouts/Base.astro
+import '../styles/global.css';
+import { SITE } from '../config';
+import { url } from '../lib/url';
+import Seo from '../components/Seo.astro';
+import Header from '../components/Header.astro';
+import Analytics from '../components/Analytics.astro';
+interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article'; publishedTime?: string; }
+const { title = SITE.title, description = SITE.description, image = new URL(url('og/default.png'), Astro.site).href, type = 'website', publishedTime } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+<html lang={SITE.lang}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <Seo {title} {description} {canonical} {image} {type} {publishedTime} />
+  <link rel="alternate" type="application/rss+xml" title={SITE.title} href={url('rss.xml')} />
+  <link rel="sitemap" href={url('sitemap-index.xml')} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+  <script is:inline>
+    (function(){try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();
+  </script>
+  <Analytics />
+</head>
+<body>
+  <Header />
+  <slot />
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© {new Date().getFullYear()} {SITE.author}</span>
+      <span><a href={url('rss.xml')}>RSS</a> · <a href={SITE.githubUrl} data-outbound="github">GitHub</a> · <a href={SITE.resumeUrl} data-outbound="resume">이력서</a></span>
+    </div>
+  </footer>
+</body>
+</html>
+<style>
+  .site-footer { border-top:1px solid var(--line); padding-block:24px; color:var(--ink-3); font-size:12.5px; margin-top:48px; }
+  .site-footer .wrap { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+</style>
