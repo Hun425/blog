@@ -30,19 +30,20 @@ const id = SITE.ga4Id;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-
-    // 코드 복사 버튼
-    document.querySelectorAll<HTMLPreElement>('pre.astro-code').forEach((pre) => {
-      const btn = document.createElement('button');
-      btn.className = 'copy-btn'; btn.type = 'button'; btn.textContent = '복사';
-      btn.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(pre.innerText);
-        btn.textContent = '복사됨'; setTimeout(() => (btn.textContent = '복사'), 1500);
-        track({ name: 'code_copy', lang: pre.dataset.language ?? 'text' });
-      });
-      pre.appendChild(btn);
-    });
   }
+
+  // 코드 복사 버튼 (article 유무와 무관하게 코드 블록이 있는 모든 페이지에서 동작)
+  document.querySelectorAll<HTMLPreElement>('pre.astro-code').forEach((pre) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn'; btn.type = 'button'; btn.textContent = '복사';
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector<HTMLElement>('code');
+      await navigator.clipboard.writeText((code ?? pre).innerText);
+      btn.textContent = '복사됨'; setTimeout(() => (btn.textContent = '복사'), 1500);
+      track({ name: 'code_copy', lang: pre.dataset.language ?? 'text' });
+    });
+    pre.appendChild(btn);
+  });
 
   document.addEventListener('blog:toc_click', (e) => track({ name: 'toc_click', heading: (e as CustomEvent).detail.heading }));
   document.addEventListener('blog:series_nav', (e) => track({ name: 'series_nav', direction: (e as CustomEvent).detail.direction }));
