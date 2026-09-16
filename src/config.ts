@@ -7,7 +7,7 @@ export const SITE = {
   resumeUrl: 'https://hun425.github.io/',
   githubUrl: 'https://github.com/Hun425',
   velogUrl: 'https://velog.io/@chae0738',
-  ga4Id: '',
+  ga4Id: 'G-KJ9BDVS9DJ',
   giscus: {
     repo: 'Hun425/blog',
     repoId: 'R_kgDOUdtZWA',
