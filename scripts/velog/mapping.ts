@@ -1,4 +1,4 @@
-import type { Category } from '../../src/lib/categories';
+import type { Category } from '../../src/lib/categories.ts';
 
 export const SERIES_TO_CATEGORY: Record<string, Category | null> = {
   Algorithm: 'algorithm', CS: 'cs', Spring: 'backend', Project: 'backend', 일상: 'career', 회사: null,

@@ -1,9 +1,9 @@
 // 실행: npm run migrate [-- --force]
 import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join, extname } from 'node:path';
-import { listPosts, fetchPost } from './velog/client';
-import { folderName, rewriteImages, buildFrontmatter, truncate } from './velog/transform';
-import { resolveCategory } from './velog/mapping';
+import { listPosts, fetchPost } from './velog/client.ts';
+import { folderName, rewriteImages, buildFrontmatter, truncate } from './velog/transform.ts';
+import { resolveCategory } from './velog/mapping.ts';
 
 const USERNAME = 'chae0738';
 const OUT = 'src/content/posts';
@@ -12,6 +12,15 @@ const RETRY_DELAY_MS = 1000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** astro:assets `image()` 가 인식하지 못하는 확장자를 동일 포맷의 인식 가능한 확장자로 바꾼다. */
+function normalizeImageExt(ext: string): string {
+  return ext.toLowerCase() === '.jfif' ? '.jpg' : ext;
+}
+
+function imageExt(url: string): string {
+  return normalizeImageExt(extname(new URL(url).pathname) || '.png');
 }
 
 async function download(src: string, dest: string): Promise<boolean> {
@@ -63,15 +72,15 @@ for (const item of list) {
   if (unmapped) report.unmapped.push(post.title);
   report.byCategory[category] = (report.byCategory[category] ?? 0) + 1;
 
-  const { body, sources } = rewriteImages(post.body, (src, i) => `./img-${String(i + 1).padStart(2, '0')}${extname(new URL(src).pathname) || '.png'}`);
+  const { body, sources } = rewriteImages(post.body, (src, i) => `./img-${String(i + 1).padStart(2, '0')}${imageExt(src)}`);
   for (const [i, src] of sources.entries()) {
-    const ok = await download(src, join(dir, `img-${String(i + 1).padStart(2, '0')}${extname(new URL(src).pathname) || '.png'}`));
+    const ok = await download(src, join(dir, `img-${String(i + 1).padStart(2, '0')}${imageExt(src)}`));
     if (!ok) report.imageFailed.push(`${post.title}: ${src}`);
   }
 
   let cover: string | undefined;
   if (post.thumbnail) {
-    const ext = extname(new URL(post.thumbnail).pathname) || '.png';
+    const ext = imageExt(post.thumbnail);
     const idx = sources.indexOf(post.thumbnail);
     if (idx >= 0) cover = `./img-${String(idx + 1).padStart(2, '0')}${ext}`;          // 본문 첫 이미지와 동일하면 재사용
     else if (await download(post.thumbnail, join(dir, `cover${ext}`))) cover = `./cover${ext}`;

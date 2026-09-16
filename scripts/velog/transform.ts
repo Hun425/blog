@@ -1,5 +1,5 @@
-import { normalizeSlug } from '../../src/lib/text';
-import type { Category } from '../../src/lib/categories';
+import { normalizeSlug } from '../../src/lib/text.ts';
+import type { Category } from '../../src/lib/categories.ts';
 
 export function folderName(releasedAt: string, urlSlug: string, title: string): string {
   return `${releasedAt.slice(0, 10)}-${normalizeSlug(urlSlug, title)}`;
