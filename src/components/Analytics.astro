@@ -1,3 +1,56 @@
 ---
-// src/components/Analytics.astro  (Task 9 에서 채움)
+// src/components/Analytics.astro
+import { SITE } from '../config';
+const id = SITE.ga4Id;
 ---
+{id && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${id}`}></script>
+    <script is:inline define:vars={{ id }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', id, { anonymize_ip: true });
+    </script>
+  </>
+)}
+<script>
+  import { track, progressBuckets } from '../lib/analytics';
+
+  // 읽기 진행률 (본문 페이지에서만)
+  const article = document.querySelector<HTMLElement>('article.article');
+  if (article) {
+    const seen = new Set<number>();
+    const onScroll = () => {
+      const bottom = article.getBoundingClientRect().bottom + window.scrollY;
+      const ratio = Math.min(1, (window.scrollY + window.innerHeight - article.offsetTop) / (bottom - article.offsetTop));
+      for (const b of progressBuckets(ratio, seen)) track({ name: 'read_progress', percent: b as 25 | 50 | 75 | 100 });
+      if (seen.size === 4) window.removeEventListener('scroll', onScroll);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // 코드 복사 버튼
+    document.querySelectorAll<HTMLPreElement>('pre.astro-code').forEach((pre) => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn'; btn.type = 'button'; btn.textContent = '복사';
+      btn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(pre.innerText);
+        btn.textContent = '복사됨'; setTimeout(() => (btn.textContent = '복사'), 1500);
+        track({ name: 'code_copy', lang: pre.dataset.language ?? 'text' });
+      });
+      pre.appendChild(btn);
+    });
+  }
+
+  document.addEventListener('blog:toc_click', (e) => track({ name: 'toc_click', heading: (e as CustomEvent).detail.heading }));
+  document.addEventListener('blog:series_nav', (e) => track({ name: 'series_nav', direction: (e as CustomEvent).detail.direction }));
+  window.addEventListener('themechange', (e) => track({ name: 'theme_toggle', to: (e as CustomEvent).detail }));
+  document.querySelectorAll<HTMLAnchorElement>('a[data-outbound]').forEach((a) =>
+    a.addEventListener('click', () => track({ name: 'outbound', url: a.href })));
+</script>
+<style is:global>
+  .copy-btn { position:absolute; top:8px; right:8px; font:inherit; font-size:11.5px; padding:3px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.35); color:#fff; cursor:pointer; opacity:0; transition:opacity .15s; }
+  pre.astro-code:hover .copy-btn, .copy-btn:focus-visible { opacity:1; }
+</style>
