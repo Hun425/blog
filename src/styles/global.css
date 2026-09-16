@@ -54,3 +54,7 @@ img { max-width:100%; height:auto; }
 .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; padding-block:14px 48px; }
 @media (max-width:900px) { .grid { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:560px) { .grid { grid-template-columns:1fr; gap:16px; } }
+
+/* 목록 페이지 제목 */
+.page-title { font-size:24px; font-weight:700; padding-block:28px 8px; }
+.page-title .n { color:var(--ink-3); font-size:16px; font-weight:500; margin-left:6px; }

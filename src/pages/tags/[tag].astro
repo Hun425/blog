@@ -15,7 +15,3 @@ const { tag, posts } = Astro.props;
     <div class="grid">{posts.map((post) => <PostCard {post} />)}</div>
   </main>
 </Base>
-<style is:global>
-  .page-title { font-size:24px; font-weight:700; padding-block:28px 8px; }
-  .page-title .n { color:var(--ink-3); font-size:16px; font-weight:500; margin-left:6px; }
-</style>
