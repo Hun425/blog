@@ -1,0 +1,24 @@
+---
+// src/pages/series/index.astro
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getSeries } from '../../lib/posts';
+import { url } from '../../lib/url';
+const all = await getCollection('series');
+const items = await Promise.all(all.map(async (s) => ({ s, count: (await getSeries(s.id)).posts.length })));
+---
+<Base title="시리즈" description="연재 글 모음">
+  <main class="wrap">
+    <h1 class="page-title">시리즈 <span class="n">{items.length}</span></h1>
+    {items.length === 0 && <p style="color:var(--ink-3); padding-bottom:48px;">아직 시리즈가 없습니다.</p>}
+    <ul class="series-list">
+      {items.map(({ s, count }) => <li><a href={url(`series/${s.id}/`)}><b>{s.data.title}</b><span>{s.data.description}</span><small>{count}편</small></a></li>)}
+    </ul>
+  </main>
+</Base>
+<style>
+  .series-list { list-style:none; padding:0 0 48px; margin:0; display:grid; gap:12px; }
+  .series-list a { display:grid; gap:4px; padding:16px 18px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); }
+  .series-list span { color:var(--ink-2); font-size:14px; }
+  .series-list small { color:var(--ink-3); }
+</style>

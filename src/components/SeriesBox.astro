@@ -1,0 +1,18 @@
+---
+// src/components/SeriesBox.astro
+import type { Post, Series } from '../lib/posts';
+import { url } from '../lib/url';
+interface Props { meta: Series; posts: Post[]; currentId: string; }
+const { meta, posts, currentId } = Astro.props;
+---
+<div class="box">
+  <b>시리즈 · {meta.data.title}</b>
+  {posts.map((p, i) => <a class:list={{ cur: p.id === currentId }} href={url(`posts/${p.id}/`)}>{i + 1}. {p.data.title}</a>)}
+</div>
+<style>
+  .box { padding:14px; border:1px solid var(--line); border-radius:8px; background:var(--surface); font-size:13.5px; }
+  b { display:block; font-size:12px; color:var(--ink-3); letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px; }
+  a { display:block; color:var(--ink-2); padding:3px 0; }
+  a.cur { color:var(--accent); font-weight:600; }
+  @media (max-width:900px) { .box { display:none; } }
+</style>

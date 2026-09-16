@@ -1,0 +1,31 @@
+---
+// src/components/SeriesNav.astro
+import type { Post, Series } from '../lib/posts';
+import { url } from '../lib/url';
+interface Props { meta: Series; posts: Post[]; current: Post; prev?: Post; next?: Post; }
+const { meta, posts, current, prev, next } = Astro.props;
+const idx = posts.findIndex((p) => p.id === current.id) + 1;
+---
+<nav class="series-nav" aria-label="시리즈 이동">
+  <div class="head"><a href={url(`series/${meta.id}/`)}><b>시리즈 · {meta.data.title}</b></a><span class="mono">{idx} / {posts.length}</span></div>
+  <div class="pn">
+    {prev ? <a href={url(`posts/${prev.id}/`)} data-series-nav="prev"><small>← 이전 편</small><strong>{prev.data.title}</strong></a> : <span></span>}
+    {next ? <a href={url(`posts/${next.id}/`)} data-series-nav="next"><small>다음 편 →</small><strong>{next.data.title}</strong></a> : <span></span>}
+  </div>
+</nav>
+<style>
+  .series-nav { margin-top:44px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); overflow:hidden; }
+  .head { padding:12px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+  .head b { color:var(--accent); }
+  .head span { color:var(--ink-3); }
+  .pn { display:grid; grid-template-columns:1fr 1fr; }
+  .pn a { padding:14px 18px; display:flex; flex-direction:column; gap:3px; }
+  .pn a + a, .pn span + a { border-left:1px solid var(--line); text-align:right; }
+  small { color:var(--ink-3); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; }
+  strong { font-weight:600; font-size:14.5px; }
+  @media (max-width:560px) { .pn { grid-template-columns:1fr; } .pn a + a, .pn span + a { border-left:0; border-top:1px solid var(--line); text-align:left; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('[data-series-nav]').forEach((a) =>
+    a.addEventListener('click', () => document.dispatchEvent(new CustomEvent('blog:series_nav', { detail: { direction: a.dataset.seriesNav } }))));
+</script>

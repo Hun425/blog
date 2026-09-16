@@ -1,0 +1,27 @@
+---
+// src/pages/series/[series].astro
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getSeries } from '../../lib/posts';
+import { url } from '../../lib/url';
+export async function getStaticPaths() {
+  const all = await getCollection('series');
+  return all.map((s) => ({ params: { series: s.id } }));
+}
+const { meta, posts } = await getSeries(Astro.params.series);
+---
+<Base title={meta.data.title} description={meta.data.description}>
+  <main class="wrap">
+    <h1 class="page-title">{meta.data.title}</h1>
+    <p class="desc">{meta.data.description}</p>
+    <ol class="list">
+      {posts.map((p) => <li><a href={url(`posts/${p.id}/`)}><span class="mono">{p.data.date.toISOString().slice(0, 10)}</span>{p.data.title}</a></li>)}
+    </ol>
+  </main>
+</Base>
+<style>
+  .desc { color:var(--ink-2); margin:0 0 20px; }
+  .list { padding-left:20px; display:flex; flex-direction:column; gap:10px; padding-bottom:48px; }
+  .list a { display:flex; gap:14px; align-items:baseline; }
+  .list .mono { color:var(--ink-3); font-size:12.5px; }
+</style>
