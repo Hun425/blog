@@ -16,6 +16,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
   <link rel="icon" href={url('favicon.ico')} sizes="any" />
+  <link rel="apple-touch-icon" href={url('apple-touch-icon.png')} />
   <Seo {title} {description} {canonical} {image} {type} {publishedTime} />
   <link rel="alternate" type="application/rss+xml" title={SITE.title} href={url('rss.xml')} />
   <link rel="sitemap" href={url('sitemap-index.xml')} />
