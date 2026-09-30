@@ -15,7 +15,7 @@ interface Props { title: string; description: string; image?: string; publishedT
 <style is:global>
   .post-layout { display:grid; grid-template-columns:minmax(0,720px) 240px; gap:56px; padding-block:24px 64px; justify-content:space-between; }
   .aside { position:sticky; top:72px; align-self:start; display:flex; flex-direction:column; gap:26px; }
-  .article { font-size:16px; line-height:1.8; }
+  .article { font-size:16px; line-height:1.8; overflow-wrap:break-word; }
   .article h2 { font-size:22px; font-weight:700; margin:40px 0 12px; letter-spacing:-.01em; scroll-margin-top:80px; }
   .article h3 { font-size:17.5px; font-weight:600; margin:28px 0 8px; scroll-margin-top:80px; }
   .article p { margin:0 0 16px; }
@@ -28,5 +28,5 @@ interface Props { title: string; description: string; image?: string; publishedT
   .article img { border-radius:8px; }
   .origin { margin-top:18px; font-size:13px; color:var(--ink-3); }
   .origin a { color:var(--accent); }
-  @media (max-width:900px) { .post-layout { grid-template-columns:1fr; } .aside { position:static; order:-1; } }
+  @media (max-width:900px) { .post-layout { grid-template-columns:minmax(0,1fr); } .aside { position:static; order:-1; } }
 </style>
