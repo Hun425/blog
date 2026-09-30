@@ -1,0 +1,63 @@
+---
+// 두 번째 기여의 PR·이슈 흐름을 날짜순으로 보여 주는 정적 타임라인.
+type Item = { date: string; kind: 'pr' | 'issue' | 'review' | 'merge'; title: string; body: string; href?: string; size?: [number, number]; muted?: boolean };
+
+const items: Item[] = [
+  { date: '8월 초', kind: 'review', title: '#6241 작업 승인', body: 'Executor를 먼저 만들고 그 위에서 (역)직렬화를 옮기겠다고 제안', href: 'https://github.com/line/armeria/issues/6241' },
+  { date: '8.24', kind: 'pr', title: '#6931 CallExecutor 도입', body: '리뷰 후 범위를 줄이기로 하고 잠시 멈춤', href: 'https://github.com/line/armeria/pull/6931', size: [1133, 87], muted: true },
+  { date: '9.1', kind: 'issue', title: '#6938 onReady() 재진입 버그 등록', body: '회사에서 만난 reflection 응답 중복을 재현해서 제보', href: 'https://github.com/line/armeria/issues/6938' },
+  { date: '9.6', kind: 'pr', title: '#6947 (역)직렬화 위치만 이동', body: 'CallExecutor 없이 원래 이슈 범위만', href: 'https://github.com/line/armeria/pull/6947', size: [912, 76] },
+  { date: '9.18', kind: 'review', title: '첫 승인', body: '리뷰에서 방어 코드 두 곳을 덜어낸 뒤' },
+  { date: '9.22', kind: 'merge', title: '#6947 머지', body: '메인테이너 세 분 승인', href: 'https://github.com/line/armeria/pull/6947' },
+];
+const label = { pr: 'PR', issue: '이슈', review: '리뷰', merge: '머지' } as const;
+const maxAdd = Math.max(...items.flatMap((i) => (i.size ? [i.size[0]] : [])));
+---
+<figure class="demo pr-timeline" aria-label="두 번째 기여의 PR과 이슈 타임라인">
+  <ol>
+    {items.map((it) => (
+      <li class:list={[it.kind, { muted: it.muted }]}>
+        <span class="date mono">{it.date}</span>
+        <span class="dot" aria-hidden="true"></span>
+        <div class="body">
+          <div class="head">
+            <span class="tag">{label[it.kind]}</span>
+            {it.href ? <a href={it.href} rel="noopener">{it.title}</a> : <strong>{it.title}</strong>}
+          </div>
+          <p>{it.body}</p>
+          {it.size && (
+            <div class="size mono">
+              <span class="bar add" style={`width:${(it.size[0] / maxAdd) * 60}%`}></span>
+              <span class="n"><b>+{it.size[0].toLocaleString()}</b> / −{it.size[1]}</span>
+            </div>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+  <figcaption>줄 수는 각 PR을 처음 올렸을 때 기준.</figcaption>
+</figure>
+
+<style is:global>
+  .article .pr-timeline ol { list-style:none; margin:0; padding:0; position:relative; }
+  .article .pr-timeline ol::before { content:""; position:absolute; left:67px; top:8px; bottom:8px; width:2px; background:var(--line); }
+  .article .pr-timeline li { display:grid; grid-template-columns:56px 24px minmax(0,1fr); align-items:start; margin:0 0 16px; }
+  .article .pr-timeline li:last-child { margin-bottom:0; }
+  .article .pr-timeline .date { font-size:12.5px; color:var(--ink-3); text-align:right; padding-right:4px; line-height:22px; }
+  .article .pr-timeline .dot { --k:var(--accent); width:12px; height:12px; margin:5px 0 0 6px; border-radius:50%; background:var(--surface); border:2.5px solid var(--k); position:relative; z-index:1; }
+  .article .pr-timeline .issue .dot, .article .pr-timeline .issue .tag { --k:var(--c-career); }
+  .article .pr-timeline .review .dot, .article .pr-timeline .review .tag { --k:var(--c-algorithm); }
+  .article .pr-timeline .merge .dot, .article .pr-timeline .merge .tag { --k:var(--c-infra); }
+  .article .pr-timeline .merge .dot { background:var(--k); }
+  .article .pr-timeline .head { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; line-height:22px; font-size:14.5px; }
+  .article .pr-timeline .head a { color:var(--ink); font-weight:600; border-bottom:1px solid var(--line); }
+  .article .pr-timeline .head a:hover { border-color:var(--accent); }
+  .article .pr-timeline .tag { --k:var(--accent); font-size:11px; font-weight:700; padding:0 6px; border-radius:4px; color:var(--k); background:color-mix(in srgb,var(--k) 12%,transparent); line-height:18px; }
+  .article .pr-timeline .body p { margin:2px 0 0; font-size:13.5px; line-height:1.6; color:var(--ink-2); }
+  .article .pr-timeline .size { display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px; color:var(--ink-3); }
+  .article .pr-timeline .size .bar { height:6px; border-radius:3px; background:var(--c-infra); flex:none; }
+  .article .pr-timeline .size b { color:var(--c-infra); font-weight:700; }
+  .article .pr-timeline .muted .head a, .article .pr-timeline .muted .body p { color:var(--ink-3); }
+  .article .pr-timeline .muted .size .bar { background:color-mix(in srgb,var(--ink-3) 50%,transparent); }
+  .article .pr-timeline .muted .size b { color:var(--ink-3); }
+</style>

@@ -3,9 +3,9 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { CATEGORIES } from './lib/categories';
 
-/** '2026-08-09-terraform-도입기/index.md' → 'terraform-도입기' */
+/** '2026-08-09-terraform-도입기/index.md' → 'terraform-도입기' (.mdx 동일) */
 function postId({ entry }: { entry: string }): string {
-  return entry.replace(/\/index\.md$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+  return entry.replace(/\/index\.mdx?$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
 }
 
 const series = defineCollection({
@@ -17,7 +17,7 @@ const series = defineCollection({
 });
 
 const posts = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: './src/content/posts', generateId: postId }),
+  loader: glob({ pattern: '**/index.{md,mdx}', base: './src/content/posts', generateId: postId }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),

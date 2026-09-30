@@ -1,0 +1,208 @@
+---
+// 응답 직렬화를 호출자 스레드로 옮기면서 압축 방식을 정하기 전에 본문 압축이 먼저 일어나던 순서 문제를 보여 준다.
+import DemoFrame from './DemoFrame.astro';
+---
+<DemoFrame
+  label="압축 방식 결정 순서 비교. 직렬화만 호출자 스레드로 옮기면 이벤트 루프가 헤더 태스크에서 압축 방식을 identity로 정하기 전에 호출자 스레드가 본문을 gzip으로 압축해, 헤더는 identity인데 본문은 gzip인 응답이 나간다. 압축 방식 결정도 호출자 스레드로 옮기면 헤더와 본문이 모두 identity로 맞는다."
+  caption="서버는 gzip을 설정했지만 클라이언트는 gzip을 지원하지 않는 경우."
+>
+  <canvas data-demo="compression-race"></canvas>
+  <ul class="legend" slot="legend">
+    <li><i style="--k:var(--accent)"></i>헤더 처리</li>
+    <li><i style="--k:var(--c-algorithm)"></i>본문 직렬화·압축</li>
+    <li><i style="--k:var(--c-infra)"></i>압축 방식 결정</li>
+    <li><i style="--k:var(--ink-3)"></i>이벤트 루프의 다른 작업</li>
+  </ul>
+</DemoFrame>
+
+<script>
+  import { mountDemo, roundRect, mix, seg, ease, taskBlock, arrow, type Frame, type Palette } from './canvas';
+
+  type Kind = 'header' | 'body' | 'decide' | 'other';
+  type Task = { lane: 0 | 1; from: number; to: number; label: string; short: string; kind: Kind };
+  type Wire = { at: number; kind: 'HEADERS' | 'DATA'; text: string; short: string; bad: boolean };
+  type Scenario = {
+    title: string; sub: string; tasks: Task[];
+    submit: { at: number; fromTask: number; toTask: number }; // sendHeaders가 이벤트 루프에 태스크를 넘기는 화살표
+    wire: Wire[]; verdict: { at: number; ok: boolean; text: string };
+  };
+
+  const T = 100;
+
+  const broken: Scenario = {
+    title: '직렬화만 옮겼을 때',
+    sub: '압축 방식은 여전히 이벤트 루프에서 정한다',
+    tasks: [
+      { lane: 0, from: 1, to: 15, label: 'sendHeaders()', short: 'headers', kind: 'header' },
+      { lane: 0, from: 16, to: 50, label: 'sendMessage() 직렬화 + gzip 압축', short: 'gzip 압축', kind: 'body' },
+      { lane: 1, from: 0, to: 32, label: '다른 작업 처리 중', short: '다른 작업', kind: 'other' },
+      { lane: 1, from: 32, to: 56, label: '압축 방식 결정 → identity', short: 'identity', kind: 'decide' },
+      { lane: 1, from: 56, to: 64, label: '헤더 쓰기', short: '헤더', kind: 'header' },
+      { lane: 1, from: 64, to: 72, label: '본문 쓰기', short: '본문', kind: 'header' },
+    ],
+    submit: { at: 15, fromTask: 0, toTask: 3 },
+    wire: [
+      { at: 64, kind: 'HEADERS', text: 'grpc-encoding: identity', short: 'identity', bad: false },
+      { at: 72, kind: 'DATA', text: 'gzip으로 압축된 본문', short: 'gzip', bad: true },
+    ],
+    verdict: { at: 76, ok: false, text: '헤더와 본문의 압축 방식이 다르다' },
+  };
+
+  const fixed: Scenario = {
+    title: '압축 방식 결정도 함께 옮겼을 때',
+    sub: '호출자 스레드에서 압축 방식을 정한 뒤 직렬화',
+    tasks: [
+      { lane: 0, from: 1, to: 15, label: 'sendHeaders()', short: 'headers', kind: 'header' },
+      { lane: 0, from: 15, to: 39, label: '압축 방식 결정 → identity', short: 'identity', kind: 'decide' },
+      { lane: 0, from: 40, to: 58, label: 'sendMessage() 직렬화', short: '직렬화', kind: 'body' },
+      { lane: 1, from: 0, to: 40, label: '다른 작업 처리 중', short: '다른 작업', kind: 'other' },
+      { lane: 1, from: 40, to: 48, label: '헤더 쓰기', short: '헤더', kind: 'header' },
+      { lane: 1, from: 58, to: 66, label: '본문 쓰기', short: '본문', kind: 'header' },
+    ],
+    submit: { at: 39, fromTask: 1, toTask: 4 },
+    wire: [
+      { at: 48, kind: 'HEADERS', text: 'grpc-encoding: identity', short: 'identity', bad: false },
+      { at: 66, kind: 'DATA', text: '압축하지 않은 본문', short: 'identity', bad: false },
+    ],
+    verdict: { at: 70, ok: true, text: '헤더와 본문이 모두 identity' },
+  };
+
+  const LANE_H = 30;
+  const LANE_GAP = 8;
+  const HEAD_H = 40;
+  const WIRE_H = 28;
+  const PANEL_H = HEAD_H + LANE_H * 2 + LANE_GAP + 18 + 16 + WIRE_H + 12 + 18;
+  const PANEL_GAP = 26;
+
+  function kindColor(c: Palette, k: Kind) {
+    return k === 'header' ? c.accent : k === 'body' ? c.orange : k === 'decide' ? c.teal : mix(c.ink3, 0.55);
+  }
+
+  function drawPanel(f: Frame, s: Scenario, top: number) {
+    const { ctx, width, colors: c, font, mono } = f;
+    const now = f.p * T;
+    const narrow = width < 520;
+    const x0 = narrow ? 70 : 96;
+    const x1 = width - 8;
+    const X = (t: number) => x0 + (t / 80) * (x1 - x0); // 0~80 구간을 폭에 맞춘다(80 이후는 결과 표시)
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = `700 14px ${font}`;
+    ctx.fillStyle = c.ink;
+    ctx.fillText(s.title, 0, top + 14);
+    ctx.font = `400 12px ${font}`;
+    ctx.fillStyle = c.ink3;
+    ctx.fillText(s.sub, 0, top + 31, width);
+
+    const laneY = [top + HEAD_H, top + HEAD_H + LANE_H + LANE_GAP];
+    ['호출자 스레드', '이벤트 루프'].forEach((name, i) => {
+      ctx.font = `600 ${narrow ? 11 : 12.5}px ${font}`;
+      ctx.fillStyle = c.ink2;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(name, 0, laneY[i] + LANE_H / 2, x0 - 6);
+      roundRect(ctx, x0, laneY[i], x1 - x0, LANE_H, 6);
+      ctx.fillStyle = c.surface2;
+      ctx.fill();
+    });
+
+    const rect = (t: Task) => ({ x: X(t.from) + 1, y: laneY[t.lane] + 3, w: X(t.to) - X(t.from) - 2, h: LANE_H - 6 });
+
+    for (const t of s.tasks) {
+      if (now <= t.from) continue;
+      const r = rect(t);
+      const w = X(Math.min(now, t.to)) - X(t.from) - 2;
+      taskBlock(f, r.x, r.y, w, r.h, kindColor(c, t.kind), t.label, t.short, r.w);
+    }
+
+    // sendHeaders → 이벤트 루프 제출 화살표 (대상 태스크가 시작될 때까지 점선으로 기다린다)
+    if (now >= s.submit.at) {
+      const a = rect(s.tasks[s.submit.fromTask]);
+      const b = rect(s.tasks[s.submit.toTask]);
+      const k = ease(seg(now, s.submit.at, s.submit.at + 4));
+      const sx = a.x + a.w - 4;
+      const sy = a.y + a.h;
+      const ex = sx + (b.x + 6 - sx) * k;
+      const ey = sy + (b.y - sy) * k;
+      ctx.setLineDash([3, 3]);
+      arrow(ctx, sx, sy, ex, ey, c.ink2);
+      ctx.setLineDash([]);
+    }
+
+    // 실제로 나가는 프레임
+    const wireY = laneY[1] + LANE_H + 18;
+    ctx.font = `600 ${narrow ? 11 : 12}px ${font}`;
+    ctx.fillStyle = c.ink3;
+    ctx.textBaseline = 'middle';
+    ctx.fillText('전송', 0, wireY + WIRE_H / 2);
+    let wx = x0;
+    for (const w of s.wire) {
+      if (now < w.at) continue;
+      const k = ease(seg(now, w.at, w.at + 4));
+      ctx.font = `700 10.5px ${mono}`;
+      const tag = w.kind;
+      const tagW = ctx.measureText(tag).width + 12;
+      ctx.font = `500 ${narrow ? 10.5 : 11.5}px ${font}`;
+      const maxChip = (x1 - x0 - 8) / 2;
+      const label = tagW + ctx.measureText(w.text).width + 12 <= maxChip ? w.text : w.short;
+      const chipW = Math.min(tagW + ctx.measureText(label).width + 12, maxChip);
+      const col = w.bad ? c.pink : c.ink2;
+      ctx.globalAlpha = k;
+      roundRect(ctx, wx, wireY + (1 - k) * 6, chipW, WIRE_H, 5);
+      ctx.fillStyle = w.bad ? mix(c.pink, 0.12) : c.surface;
+      ctx.fill();
+      ctx.strokeStyle = w.bad ? c.pink : c.line;
+      ctx.stroke();
+      ctx.font = `700 10.5px ${mono}`;
+      ctx.fillStyle = col;
+      ctx.fillText(tag, wx + 6, wireY + WIRE_H / 2 + (1 - k) * 6);
+      ctx.font = `500 ${narrow ? 10.5 : 11.5}px ${font}`;
+      ctx.fillStyle = w.bad ? c.pink : c.ink;
+      ctx.fillText(label, wx + tagW, wireY + WIRE_H / 2 + (1 - k) * 6, chipW - tagW - 6);
+      ctx.globalAlpha = 1;
+      wx += chipW + 8;
+    }
+
+    // 판정
+    if (now >= s.verdict.at) {
+      const k = seg(now, s.verdict.at, s.verdict.at + 4);
+      ctx.globalAlpha = k;
+      ctx.font = `700 12.5px ${font}`;
+      ctx.fillStyle = s.verdict.ok ? c.teal : c.pink;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${s.verdict.ok ? '✓' : '✗'} ${s.verdict.text}`, x1, wireY + WIRE_H + 12 + 9);
+      ctx.textAlign = 'left';
+      ctx.globalAlpha = 1;
+    }
+
+    if (f.p < 1 && now <= 80) {
+      const px = X(now);
+      ctx.strokeStyle = mix(c.ink, 0.35);
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(px, laneY[0] - 4);
+      ctx.lineTo(px, laneY[1] + LANE_H + 4);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  document.querySelectorAll<HTMLCanvasElement>('canvas[data-demo="compression-race"]').forEach((canvas) => {
+    mountDemo(canvas, {
+      duration: 8000,
+      hold: 2600,
+      height: () => PANEL_H * 2 + PANEL_GAP,
+      draw: (f) => {
+        drawPanel(f, broken, 0);
+        const { ctx, width, colors } = f;
+        ctx.strokeStyle = colors.line;
+        ctx.beginPath();
+        ctx.moveTo(0, PANEL_H + PANEL_GAP / 2);
+        ctx.lineTo(width, PANEL_H + PANEL_GAP / 2);
+        ctx.stroke();
+        drawPanel(f, fixed, PANEL_H + PANEL_GAP);
+      },
+    });
+  });
+</script>

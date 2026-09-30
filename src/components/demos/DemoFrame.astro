@@ -1,0 +1,25 @@
+---
+// 글 속 애니메이션 데모의 공통 틀: 카드 + 캔버스 + 범례 + 설명.
+interface Props {
+  /** 스크린리더용 그림 설명 */
+  label: string;
+  caption?: string;
+}
+const { label, caption } = Astro.props;
+---
+<figure class="demo" role="img" aria-label={label}>
+  <div class="demo-canvas"><slot /></div>
+  <slot name="legend" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .article .demo { margin:28px 0; padding:18px 18px 14px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); }
+  .article .demo canvas { display:block; width:100%; }
+  .article .demo .legend { list-style:none; display:flex; flex-wrap:wrap; gap:6px 16px; margin:14px 0 0; padding:0; font-size:12.5px; color:var(--ink-2); }
+  .article .demo .legend li { display:inline-flex; align-items:center; gap:6px; margin:0; }
+  .article .demo .legend i { width:12px; height:12px; border-radius:3px; background:var(--k); }
+  .article .demo .legend i.hatch { background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--k) 60%,transparent) 0 1.5px,color-mix(in srgb,var(--k) 12%,transparent) 1.5px 5px); }
+  .article .demo figcaption { margin-top:8px; font-size:12.5px; color:var(--ink-3); }
+  @media (max-width:560px) { .article .demo { padding:14px 12px 12px; margin-inline:-4px; } }
+</style>
