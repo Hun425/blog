@@ -2,18 +2,22 @@
 // src/components/Analytics.astro
 import { SITE } from '../config';
 const id = SITE.ga4Id;
+// 배포 주소에서만 집계한다. dev 서버·로컬 preview·e2e 테스트 방문이 GA에 섞이지 않게 한다.
+const host = new URL(Astro.site!).hostname;
 ---
 {id && (
-  <>
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${id}`}></script>
-    <script is:inline define:vars={{ id }}>
+  <script is:inline define:vars={{ id, host }}>
+    if (location.hostname === host) {
       window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      window.gtag = gtag;
-      gtag('js', new Date());
-      gtag('config', id, { anonymize_ip: true });
-    </script>
-  </>
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', id, { anonymize_ip: true });
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+      document.head.appendChild(s);
+    }
+  </script>
 )}
 <script>
   import { track, progressBuckets } from '../lib/analytics';

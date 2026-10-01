@@ -44,3 +44,12 @@ test('테마 토글이 data-theme 를 바꾸고 새로고침 후 유지된다', 
   await page.reload();
   expect(await html.getAttribute('data-theme')).toBe(after);
 });
+
+test('배포 주소가 아니면 GA를 불러오지 않는다', async ({ page }) => {
+  const gaRequests: string[] = [];
+  page.on('request', (req) => { if (req.url().includes('googletagmanager.com')) gaRequests.push(req.url()); });
+  await page.goto('./');
+  await page.waitForLoadState('networkidle');
+  expect(gaRequests).toEqual([]);
+  expect(await page.evaluate(() => typeof window.gtag)).toBe('undefined');
+});
